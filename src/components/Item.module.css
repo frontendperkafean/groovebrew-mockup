@@ -1,0 +1,109 @@
+.itemContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.item {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    padding-left: 5px;
+    padding-right: 10px;
+    margin-bottom: 10px;
+    color: rgba(88, 55, 50, 1);
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 32px;
+}
+
+.itemInvoice {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    font-size: 18px;
+    margin-bottom: 45px;
+}
+
+.itemInvoice:last-child {
+    margin-bottom: 0; /* Remove margin-bottom for the last child */
+}
+
+.itemImage {
+    width: 139px;
+    height: 149px;
+    border-radius: 20px;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.itemDetails {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-left: 10px;
+    flex-grow: 1;
+}
+
+.itemInvoiceDetails {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-left: 10px;
+    margin-top: -15px;
+    flex-grow: 1;
+}
+
+.itemName {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-top: 0;
+    margin: 0 5px;
+}
+
+.itemInvoiceName {
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+.multiplySymbol {
+    font-weight: 600;
+}
+
+.qtyInvoice {
+    font-weight: 500;
+}
+
+.itemPrice {
+    font-size: 0.9rem;
+    margin: 0 5px;
+}
+
+.itemQty {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.plusNegative {
+    width: 25px;
+    height: 25px;
+    margin: 0 5px;
+}
+
+.remove {
+    width: 25px;
+    height: 25px;
+    margin: -10px 0;
+}
+
+.itemInvoice .itemDetails {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.itemInvoice .itemName, .itemInvoice .itemPrice, .itemInvoice .itemQty .qtyInvoice .multiplySymbol {
+    font-size: 0.9rem;
+}
