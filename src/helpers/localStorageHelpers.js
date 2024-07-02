@@ -2,11 +2,11 @@
 
 // Get cart items from localStorage
 export const getLocalStorage = (storageName) => {
-    return JSON.parse(localStorage.getItem(storageName)) || [];
+    return localStorage.getItem(storageName) || null;
 };
 
-export const updateLocalStorage = (storageName, array) => {
-    localStorage.setItem(storageName, JSON.stringify(array));
+export const updateLocalStorage = (storageName, value) => {
+    localStorage.setItem(storageName, value);
     
     const event = new Event('localStorageUpdated');
     window.dispatchEvent(event);

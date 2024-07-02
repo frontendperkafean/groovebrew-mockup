@@ -11,4 +11,6 @@
 
 .LoaderChild {
   width: 80px; /* Set the width to 80px */
+  height: 400px;
+  color: black;
 }

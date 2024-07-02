@@ -2,7 +2,7 @@ import { getLocalStorage, updateLocalStorage } from './localStorageHelpers';
 
 // Get quantity from localStorage based on cafeId and itemId
 export const getItemQtyFromCart = (cafeId, itemId) => {
-  const cart = getLocalStorage('cart');
+  const cart = JSON.parse(getLocalStorage('cart')) || [];
   const cafeItem = cart.find(cafeItem => cafeItem.cafeId === cafeId);
   if (cafeItem) {
     const item = cafeItem.items.find(item => item.itemId === itemId);
@@ -12,14 +12,14 @@ export const getItemQtyFromCart = (cafeId, itemId) => {
 };
 
 export const getItemsByCafeId = (cafeId) => {
-  const cart = getLocalStorage('cart');
+  const cart = JSON.parse(getLocalStorage('cart')) || [];
   const cafeItem = cart.find(cafeItem => cafeItem.cafeId === cafeId);
   return cafeItem ? cafeItem.items : [];
 };
 
 // Update quantity in localStorage for a specific cafeId and itemId
 export const updateItemQtyInCart = (cafeId, itemId, qty) => {
-  let cart = getLocalStorage('cart');
+  let cart = JSON.parse(getLocalStorage('cart')) || [];
   const cafeIndex = cart.findIndex(cafeItem => cafeItem.cafeId === cafeId);
 
   if (cafeIndex > -1) {
@@ -37,12 +37,12 @@ export const updateItemQtyInCart = (cafeId, itemId, qty) => {
     cart.push({ cafeId, items: [{ itemId, qty }] }); // Add new cafeId and item
   }
 
-  updateLocalStorage('cart', cart);
+  updateLocalStorage('cart', JSON.stringify(cart));
 };
 
 // Remove item from localStorage based on cafeId and itemId
 export const removeItemFromCart = (cafeId, itemId) => {
-  let items = getLocalStorage('cart');
+  let items = JSON.parse(getLocalStorage('cart')) || [];
   const cafeIndex = items.findIndex(cafeItem => cafeItem.cafeId === cafeId);
   if (cafeIndex > -1) {
     items[cafeIndex].items = items[cafeIndex].items.filter(item => item.itemId !== itemId);
@@ -50,14 +50,14 @@ export const removeItemFromCart = (cafeId, itemId) => {
       items.splice(cafeIndex, 1); // Remove cafeId if no items left
     }
 
-    updateLocalStorage('cart', items);
+    updateLocalStorage('cart', JSON.stringify(items));
   }
 };
 
 // Function to calculate total items count for a specific cafeId from localStorage
 export const calculateTotals = (cafeId) => {
   // Get cart items from localStorage
-  const cart = getLocalStorage('cart');
+  const cart = JSON.parse(getLocalStorage('cart')) || [];
   const cafeCart = cart.find(cafe => cafe.cafeId === cafeId);
 
   if (!cafeCart) {
@@ -79,7 +79,7 @@ export const calculateTotals = (cafeId) => {
 // Function to calculate total price for a specific cafeId from localStorage
 export const calculateTotalPrice = (cafeId) => {
   // Get cart items from localStorage
-  const cart = getLocalStorage('cart');
+  const cart = JSON.parse(getLocalStorage('cart')) || [];
   const cafeCart = cart.find(cafe => cafe.cafeId === cafeId);
 
   const totalPrice = cafeCart.items.reduce((total, cafeItem) => {

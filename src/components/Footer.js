@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './Footer.module.css'; // assuming you have a CSS module for Footer
-import { useNavigationHelpers } from './navigationHelpers';
+import { useNavigationHelpers } from '../helpers/navigationHelpers';
 
 export default function Footer({ shopId, cartItemsLength}) {
   const { goToShop, goToCart } = useNavigationHelpers(shopId);

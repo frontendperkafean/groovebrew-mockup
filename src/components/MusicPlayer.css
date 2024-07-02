@@ -1,7 +1,7 @@
 .music-player {
   position: relative;
   width: 95%;
-  margin: -10px auto 10px;
+  margin: -10px auto 20px;
   /* Added padding for top and bottom */
   color: white;
   box-sizing: border-box;
@@ -25,6 +25,7 @@
   filter: blur(2px);
   -webkit-filter: blur(2px);
   border-radius: 15px 15px 0 0;
+  background-color: rgb(95 121 89);
   /* Rounded corners at the top */
 }
 

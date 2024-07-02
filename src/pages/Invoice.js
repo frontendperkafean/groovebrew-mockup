@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import styles from './Invoice.module.css';
 import { useParams } from 'react-router-dom';
 
-import ItemLister from './ItemLister';
+import ItemLister from '../components/ItemLister';
 
-import { getCartDetails } from './itemHelper.js';
+import { getCartDetails } from '../helpers/itemHelper.js';
 
 export default function Invoice({ sendParam }) {
   const { shopId } = useParams();

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './MusicComponent.css'; // Import CSS file
 // import VinylComponent from './VinylComponent';
 
-const MusicComponent = ({ songg, min, max, onDecision }) => {
+const MusicComponent = ({ song, min, max, onDecision }) => {
     const [backgroundColor, setBackgroundColor] = useState('rgba(0, 0, 0, 0)');
     const [currentTime, setCurrentTime] = useState(0);
     const [positionX, setPositionX] = useState(0);
@@ -126,10 +126,10 @@ const MusicComponent = ({ songg, min, max, onDecision }) => {
                     album={songg.image || songg.album.images[0].url}
                 />} */}
             <div className="bgrnd" style={{ backgroundColor: backgroundColor }}></div>
-            <img /*src={songg.image || songg.album.images[0].url} alt={songg.name}*/ className="song-image" />
+            <img src={song.image} alt={song.name} className="song-image" />
             <div className="song-details">
-                <p className="song-name">track name</p>
-                <p className="artist-name">artist name</p>
+                <p className="song-name">{song.name}</p>
+                <p className="artist-name">{song.artist}</p>
                 {min < 0 && <p className="artist-name">&lt;--- 3 no - 7 yes ---&gt;</p>}
             </div>
             <p className="song-duration">{formatDuration(300000)}</p>
