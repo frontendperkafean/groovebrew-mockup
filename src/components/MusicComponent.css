@@ -8,11 +8,24 @@
   padding-right: 10px;
 }
 
+.decisionbgrnd {
+  position: absolute;
+  height: 90%;
+  width: 200vw;
+  transform: scale(1.01,1.194);
+  opacity: 50%;
+}
+
 .bgrnd {
   position: absolute;
   height: 90%;
   width: 200vw;
   transform: scale(2,1.2);
+  z-index: 2;
+}
+
+.decision {
+  z-index: 3;
 }
 
 .song-image {

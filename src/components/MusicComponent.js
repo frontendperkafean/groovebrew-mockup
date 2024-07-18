@@ -36,7 +36,7 @@ const MusicComponent = ({ song, min, max, onDecision }) => {
     };
 
     const handleMouseMove = (event) => {
-        if (dragging) {
+        if (dragging && !song.set) {
             const delta = event.clientX - startX;
             const newPositionX = positionX + delta;
             const minPos = 0;
@@ -69,7 +69,7 @@ const MusicComponent = ({ song, min, max, onDecision }) => {
     };
 
     const handleTouchMove = (event) => {
-        if (dragging) {
+        if (dragging && !song.set) {
             const delta = event.touches[0].clientX - startX;
             const newPositionX = positionX + delta;
             const minPos = min;
@@ -125,14 +125,16 @@ const MusicComponent = ({ song, min, max, onDecision }) => {
                 <VinylComponent
                     album={songg.image || songg.album.images[0].url}
                 />} */}
+            {song.set && <div className="decisionbgrnd" style={{ backgroundColor: song.bePlayed ? "green": "red" }}>
+                <h1 className="decision">{song.bePlayed ? "next up" : "skipped"}</h1></div>}
             <div className="bgrnd" style={{ backgroundColor: backgroundColor }}></div>
             <img src={song.image} alt={song.name} className="song-image" />
             <div className="song-details">
                 <p className="song-name">{song.name}</p>
                 <p className="artist-name">{song.artist}</p>
-                {min < 0 && <p className="artist-name">&lt;--- 3 no - 7 yes ---&gt;</p>}
+                {min < 0 && <p className="artist-name">&lt;--- {song.disagree} no - {song.agree} yes ---&gt;</p>}
             </div>
-            <p className="song-duration">{formatDuration(300000)}</p>
+            <p className="song-duration">{formatDuration(song.duration_ms)}</p>
         </div>
     );
 };

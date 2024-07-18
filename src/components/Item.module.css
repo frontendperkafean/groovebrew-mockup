@@ -9,7 +9,6 @@
     align-items: stretch;
     justify-content: space-between;
     padding-left: 5px;
-    padding-right: 10px;
     margin-bottom: 10px;
     color: rgba(88, 55, 50, 1);
     font-size: 32px;
@@ -96,9 +95,13 @@
     margin-top: 0;
     margin: 0 5px;
     color: rgba(88, 55, 50, 1);
+    background-color: transparent;
+    text-transform: capitalize;
 }
 
 .itemInvoiceName {
+    width: calc(260% - 15px);
+    background-color: transparent;
     font-size: 1.5rem;
     font-weight: 500;
 }
@@ -120,6 +123,18 @@
     margin-bottom: 35px;
     margin-left: 5px;
     color: #D9C61C;
+    background-color: transparent;
+}
+
+.itemPriceInvoice {
+    font-family: "Poppins", sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    width: calc(100% - 15px); /* Adjust the width to prevent overflow */
+    font-size: 0.9rem;
+    margin-left: 5px;
+    color: #D9C61C;
+    text-align: right;
 }
 
 .itemQty {
@@ -144,9 +159,11 @@
     font-family: "Poppins", sans-serif;
     font-style: normal;
     font-weight: 600;
-    width: calc(100% - 15px); /* Adjust the width to prevent overflow */
+    width: 30px; /* Adjust the width to prevent overflow */
     font-size: 0.9rem;
     margin-bottom: 10px;
+    text-align: center;
+    background-color: transparent;
 }
 
 
@@ -159,7 +176,8 @@
 .remove {
     width: 25px;
     height: 25px;
-    margin: -10px 0;
+    margin-top: -10px;
+    margin-right: 10px;
 }
 
 .itemInvoice .itemDetails {
@@ -178,4 +196,10 @@
 
 .notblank {
     border: 1px solid #ffffff00;
+}
+
+.createItem {
+    position: absolute;
+    left: 15px;
+    right: 15px;
 }

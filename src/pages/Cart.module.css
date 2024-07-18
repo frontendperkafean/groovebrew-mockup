@@ -24,6 +24,16 @@
   position: fixed;
 }
 
+.OrderTypeContainer{
+  display: flex;
+  justify-content: space-between;
+  width: 80vw;
+  margin: 0 auto;
+  font-size: 1em;
+  padding: 10px 0;
+  margin-bottom: 7px;
+}
+
 .Note {
   text-align: left;
   color: rgba(88, 55, 50, 1);
@@ -65,7 +75,6 @@
   padding: 10px 0;
   margin-bottom: 17px;
 }
-
 .CheckoutButton {
   font-family: "Poppins", sans-serif;
   font-weight: 500;
@@ -81,7 +90,12 @@
   margin: 0px auto;
   cursor: pointer;
   margin-bottom: 23px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 
 .BackToMenu {
   text-align: center;

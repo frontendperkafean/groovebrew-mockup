@@ -1,16 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import styles from './Invoice.module.css';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom'; // Changed from useSearchParams to useLocation
+import { ThreeDots, ColorRing } from 'react-loader-spinner';
 
 import ItemLister from '../components/ItemLister';
-
-import { getCartDetails } from '../helpers/itemHelper.js';
+import { getCartDetails } from '../helpers/itemHelper';
+import { handlePaymentFromClerk } from '../helpers/transactionHelpers';
 
 export default function Invoice({ sendParam }) {
   const { shopId } = useParams();
-  sendParam(shopId);
+  const location = useLocation(); // Use useLocation hook instead of useSearchParams
+  const searchParams = new URLSearchParams(location.search); // Pass location.search directly
+
+  const email = searchParams.get('email');
+  const orderType = searchParams.get('orderType');
+  const tableNumber = searchParams.get('tableNumber');
+
+  useEffect(() => {
+    sendParam(shopId);
+  }, [sendParam, shopId]);
+
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false); // State for payment button loading animation
 
   useEffect(() => {
     const fetchCartItems = async () => {
@@ -32,7 +44,13 @@ export default function Invoice({ sendParam }) {
     };
 
     fetchCartItems();
-  }, [shopId]); // Dependency on shopId to refetch cart items if shopId changes
+  }, [shopId]);
+
+  const handlePay = async (isCash) => {
+    setIsPaymentLoading(true);
+    const pay = await handlePaymentFromClerk(shopId, email, isCash ? 'cash' : 'cashless', orderType, tableNumber);
+    setIsPaymentLoading(false);
+  }
 
   return (
     <div className={styles.Invoice}>
@@ -43,6 +61,9 @@ export default function Invoice({ sendParam }) {
         {cartItems.map(itemType => (
           <ItemLister shopId={shopId} forInvoice={true} key={itemType.id} typeName={itemType.typeName} itemList={itemType.itemList} />
         ))}
+        <h2 className={styles['Invoice-detail']}>
+          {orderType === 'pickup' ? 'Diambil di kasir' : `Diantar ke meja nomor ${tableNumber}`}
+        </h2>
         <div className={styles.TotalContainer}>
           <span>Total:</span>
           <span>Rp {totalPrice}</span>
@@ -53,8 +74,12 @@ export default function Invoice({ sendParam }) {
           <span>Payment Option</span>
           <span></span>
         </div>
-        <button className={styles.PayButton}>Cashless</button>
-        <div className={styles.Pay2Button}>Cash</div>
+        <button className={styles.PayButton} onClick={() => handlePay(false)}>
+          {isPaymentLoading ? <ColorRing height="50" width="50" color="white" /> : 'Cashless'}
+        </button>
+        <div className={styles.Pay2Button} onClick={() => handlePay(true)}>
+          {isPaymentLoading ? <ColorRing height="12" width="12" color="white" /> : 'Cash'}
+        </div>
       </div>
       <div className={styles.PaymentOptionMargin}></div>
     </div>

@@ -2,12 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import './MusicPlayer.css';
 import MusicComponent from './MusicComponent';
 
-export function MusicPlayer({ socket, shopId }) {
+export function MusicPlayer({ socket, shopId, user, isSpotifyNeedLogin }) {
     const [currentTime, setCurrentTime] = useState(0);
     const [trackLength, setTrackLength] = useState(0);
     const [expanded, setExpanded] = useState(false); // State for expansion
-
-    const backgroundImage = 'https://i.scdn.co/image/ab67616d0000b273c17b1ac99739729a2610e521';
 
     const [songName, setSongName] = useState('');
     const [debouncedSongName, setDebouncedSongName] = useState(songName);
@@ -16,6 +14,73 @@ export function MusicPlayer({ socket, shopId }) {
     const [queue, setQueue] = useState([]);
     const [paused, setPaused] = useState([]);
 
+    const [lyrics, setLyrics] = useState([]);
+    const [currentLines, setCurrentLines] = useState({ past: [], present: [], future: [] });
+    const [lyric_progress_ms, setLyricProgressMs] = useState(0);
+
+    const [subtitleColor, setSubtitleColor] = useState('black');
+    const [backgroundImage, setBackgroundImage] = useState('');
+
+    useEffect(() => {
+        const getDominantColor = async (imageSrc) => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = imageSrc;
+
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                    const length = imageData.length;
+                    let totalR = 0, totalG = 0, totalB = 0;
+
+                    for (let i = 0; i < length; i += 4) {
+                        totalR += imageData[i];
+                        totalG += imageData[i + 1];
+                        totalB += imageData[i + 2];
+                    }
+
+                    const averageR = Math.round(totalR / (length / 4));
+                    const averageG = Math.round(totalG / (length / 4));
+                    const averageB = Math.round(totalB / (length / 4));
+
+                    resolve({ r: averageR, g: averageG, b: averageB });
+                };
+
+                img.onerror = (error) => {
+                    reject(error);
+                };
+            });
+        };
+
+        const fetchColor = async () => {
+            if (currentSong.item && currentSong.item.album && currentSong.item.album.images[0]) {
+                const imageUrl = currentSong.item.album.images[0].url;
+                try {
+                    const dominantColor = await getDominantColor(imageUrl);
+                    // Calculate luminance (YIQ color space) to determine if subtitle should be black or white
+                    const luminance = (0.299 * dominantColor.r + 0.587 * dominantColor.g + 0.114 * dominantColor.b) / 255;
+                    if (luminance > 0.5) {
+                        setSubtitleColor('black');
+                    } else {
+                        setSubtitleColor('white');
+                    }
+                    setBackgroundImage(imageUrl);
+                } catch (error) {
+                    console.error("Error fetching or processing image:", error);
+                }
+            }
+        };
+
+        fetchColor();
+    }, [currentSong]);
+    
     useEffect(() => {
         if (!socket) return;
 
@@ -27,22 +92,57 @@ export function MusicPlayer({ socket, shopId }) {
         socket.on('updateCurrentSong', (response) => {
             setCurrentSong(response);
             setCurrentTime(response.progress_ms / 1000); // Convert milliseconds to seconds
+            setLyricProgressMs(response.progress_ms);
             setTrackLength(response.item.duration_ms / 1000);
         });
 
         socket.on('updateQueue', (response) => {
             setQueue(response);
-            console.log(queue);
+            console.log(response);
         });
 
         socket.on('updatePlayer', (response) => {
             setPaused(response.decision);
         });
 
+        socket.on('updateLyrics', (response) => {
+            setLyrics(response);
+            console.log(response);
+            setCurrentLines({
+                past: [],
+                present: [],
+                future: []
+            });
+        });
+
         return () => {
             socket.off('searchResponse');
         };
     }, [socket]);
+
+    useEffect(() => {
+        // Simulate progress every 100ms
+        const interval = setInterval(() => {
+            setLyricProgressMs(prevProgress => prevProgress + 100);
+        }, 100);
+
+        return () => clearInterval(interval); // Clean up interval on component unmount
+    }, []);
+
+    useEffect(() => {
+        if (lyrics == null) return; 
+        const pastLines = lyrics.filter(line => line.startTimeMs < lyric_progress_ms);
+        const presentLines = lyrics.filter(line => line.startTimeMs > lyric_progress_ms);
+        const futureLines = lyrics.filter(line => line.startTimeMs > lyric_progress_ms);
+        
+        setCurrentLines({
+            past: pastLines.slice(-2, 1), // Get the last past line
+            present: pastLines.slice(-1),
+            future: futureLines.slice(0, 1) // Get the first future line
+        });
+
+    }, [lyrics, lyric_progress_ms]);
+
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -87,10 +187,15 @@ export function MusicPlayer({ socket, shopId }) {
         }
     };
 
-    const handleSpotifyLogin = () => {
+    const handleSpotifyAuth = () => {
         const token = localStorage.getItem("auth");
-        const loginUrl = `http://localhost:5000/login?token=${token}`; // Construct the login URL with the token as a query parameter
-        window.location.href = loginUrl; // Redirect the user to the login URL
+        let nextUrl = ''; // Use 'let' since the value will change
+        if (isSpotifyNeedLogin) {
+            nextUrl = `http://localhost:5000/login?token=${token}&cafeId=${shopId}`;
+        } else {
+            nextUrl = `http://localhost:5000/logout?token=${token}&cafeId=${shopId}`;
+        }
+        window.location.href = nextUrl;
     };
 
     const handleLogin = () => {
@@ -108,13 +213,13 @@ export function MusicPlayer({ socket, shopId }) {
     const formatTime = (timeInSeconds) => {
         const minutes = Math.floor(timeInSeconds / 60);
         const seconds = Math.floor(timeInSeconds % 60);
-    
+
         // Ensure seconds and milliseconds are always displayed with two and three digits respectively
         const formattedSeconds = seconds < 10 ? `0${seconds}` : `${seconds}`;
-    
+
         return `${minutes}:${formattedSeconds}`;
     };
-    
+
 
     const toggleExpand = () => {
         setExpanded(!expanded);
@@ -130,10 +235,27 @@ export function MusicPlayer({ socket, shopId }) {
 
     return (
         <div className={`music-player ${expanded ? 'expanded' : ''}`}>
+
             <div
                 className="current-bgr"
-                style={{ backgroundImage: currentSong.item && currentSong.item.album && currentSong.item.album.images[0] && `url(${currentSong.item.album.images[0].url})` }}
-            ></div>
+                style={{ backgroundImage: `url(${backgroundImage})` }}
+            >
+                {currentLines.past.map((line, index) => (
+                    <div className ="past" style={{ color: subtitleColor }} key={index}>
+                        <p>{line.words}</p>
+                    </div>
+                ))}
+                {currentLines.present.map((line, index) => (
+                    <div className ="present"  style={{ color: subtitleColor }} key={index}>
+                        <p>{line.words}</p>
+                    </div>
+                ))}
+                {currentLines.future.map((line, index) => (
+                    <div  className ="future" style={{ color: subtitleColor }} key={index}>
+                        <p>{line.words}</p>
+                    </div>
+                ))}
+            </div>
 
             <div className='current-info'>
                 <div className="current-name">
@@ -157,6 +279,11 @@ export function MusicPlayer({ socket, shopId }) {
                 </div>
             </div>
             <div className={`expandable-container ${expanded ? 'expanded' : ''}`} ref={expandableContainerRef}>
+                {user.cafeId != null && user.cafeId == shopId &&
+                    <div className="auth-box">
+                        <input type="text" placeholder={isSpotifyNeedLogin ? "Login Spotify" : "Logout Spotify"} onClick={handleSpotifyAuth} />
+                    </div>
+                }
                 <div className="search-box">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -169,16 +296,23 @@ export function MusicPlayer({ socket, shopId }) {
                     </svg>
                     <input type="text" placeholder="Search..." value={songName} onChange={handleInputChange} />
                 </div>
-                <div className="search-box">
-                    <button onClick={handleSpotifyLogin}>Login</button>
-                </div>
 
-                {songs.map((song, index) => (
-                    <MusicComponent key={index} song={song} min={-100} max={100} />
+                {songName != "" && songs.map((song, index) => (
+                    <MusicComponent key={index} song={song} min={0} max={100} onDecision={(e) => onRequest(song.trackId)} />
                 ))}
-                {queue.map((song, index) => (
-                    <MusicComponent key={index} song={song} min={-100} max={100} />
+                {songName == "" && queue.length > 0 && queue.map((song, index) => (
+                    <MusicComponent key={index} song={song} min={-100} max={100} onDecision={(vote) => onDecision(song.trackId, vote)} />
                 ))}
+                {songName == "" && queue.length < 1 &&
+                    <div className="rectangle">
+                        <div className="diagonal-text">No Beats Ahead - Drop Your Hits</div>
+                    </div>
+                }
+                {songName == "" && queue.length > 0 && queue.length < 3 &&
+                    <div className="rectangle">
+                        <div className="diagonal-text">Drop Your Hits</div>
+                    </div>
+                }
             </div>
             <div className="expand-button" onClick={toggleExpand}><h5>{expanded ? 'collapse' : (currentSong.item && currentSong.item.album && currentSong.item.album.images[0] && currentSong.item.artists[0] ? 'expand' : 'request your song')}</h5></div>
         </div>

@@ -11,3 +11,10 @@ export const updateLocalStorage = (storageName, value) => {
     const event = new Event('localStorageUpdated');
     window.dispatchEvent(event);
 }
+
+export const removeLocalStorage = (storageName,) => {
+    localStorage.removeItem(storageName);
+    
+    const event = new Event('localStorageUpdated');
+    window.dispatchEvent(event);
+}

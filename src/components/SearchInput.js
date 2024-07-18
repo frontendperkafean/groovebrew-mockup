@@ -31,7 +31,6 @@ const Searchinput = styled.input`
 
     &:focus {
         background-color: lightgray; /* Change background color when focused */
-        border-color: dodgerblue; /* Change border color when focused */
     }
 `;
 

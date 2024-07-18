@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import styles from './ItemLister.module.css';
 import Item from './Item';
 import { getItemQtyFromCart, updateItemQtyInCart, removeItemFromCart } from '../helpers/cartHelpers.js';
-import { getItemImageUrl, updateItemType, deleteItemType } from '../helpers/itemHelper.js';
+import { getImageUrl, createItem, updateItemType, deleteItemType } from '../helpers/itemHelper.js';
 
 const ItemLister = ({ itemTypeId, refreshTotal, shopId, user, typeName, itemList, forCart, forInvoice }) => {
   const [items, setItems] = useState(itemList.map(item => ({
@@ -97,7 +97,7 @@ const ItemLister = ({ itemTypeId, refreshTotal, shopId, user, typeName, itemList
               className={`${styles.title} ${user && user.roleId == 1 && isEdit ? styles.border : styles.noborder}`}
               value={editedTypeName}
               onChange={(e) => setEditedTypeName(e.target.value)}
-              readOnly={!isEdit}
+              disabled={!isEdit}
             />
             {user && user.roleId == 1 &&
               <>
@@ -126,6 +126,7 @@ const ItemLister = ({ itemTypeId, refreshTotal, shopId, user, typeName, itemList
                 {isAddingNewItem &&
                   <Item
                     blank={true}
+                    handleCreateItem={(name, price, qty, selectedImage) => createItem(shopId, name, price, qty, selectedImage, itemTypeId)}
                   />
                 }
               </>
@@ -139,7 +140,7 @@ const ItemLister = ({ itemTypeId, refreshTotal, shopId, user, typeName, itemList
                   name={item.name}
                   price={item.price}
                   qty={item.qty}
-                  imageUrl={getItemImageUrl(item.image)}
+                  imageUrl={getImageUrl(item.image)}
                   onPlusClick={() => handlePlusClick(item.itemId)}
                   onNegativeClick={() => handleNegativeClick(item.itemId)}
                   onRemoveClick={() => handleRemoveClick(item.itemId)}

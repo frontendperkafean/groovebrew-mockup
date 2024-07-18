@@ -9,6 +9,7 @@
     display: inline-flex;
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+    overflow-y: hidden;
 }
 
 .item-type {

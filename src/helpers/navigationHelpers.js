@@ -8,6 +8,10 @@ import { useNavigate } from 'react-router-dom';
 export const useNavigationHelpers = (params) => {
   const navigate = useNavigate();
 
+  const goToLogin = () => {
+    navigate(`/login?next=${params}`);
+  };
+
   const goToShop = () => {
     navigate(`/${params}/`);
   };
@@ -16,13 +20,23 @@ export const useNavigationHelpers = (params) => {
     navigate(`/${params}/cart`);
   };
 
-  const goToInvoice = () => {
-    navigate(`/${params}/invoice`);
+  const goToInvoice = (orderType, tableNumber, email) => {
+    if (orderType === 'serve' && tableNumber) {
+      navigate(`/${params}/invoice?orderType=${orderType}&tableNumber=${tableNumber}&email=${email}`);
+    } else {
+      navigate(`/${params}/invoice?orderType=${orderType}}&email=${email}`);
+    }
   };
 
+  const goToGuestSideLogin = () => {
+    navigate(`/${params}/guest-side-login`);
+  }
+
   return {
+    goToLogin,
     goToShop,
     goToCart,
     goToInvoice,
+    goToGuestSideLogin
   };
 };
