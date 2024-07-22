@@ -147,7 +147,7 @@ export const getAllCafeOwner = async (formData) => {
   const token = getLocalStorage("auth");
   if (token) {
     try {
-      const response = await fetch(API_BASE_URL + "/user/getAll-user", {
+      const response = await fetch(API_BASE_URL + "/user/get-owners", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
