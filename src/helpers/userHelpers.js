@@ -142,12 +142,12 @@ export const updateUser = async (formData) => {
   }
 };
 
-//for super admin
+//for super
 export const getAllCafeOwner = async (formData) => {
   const token = getLocalStorage("auth");
   if (token) {
     try {
-      const response = await fetch(API_BASE_URL + "/user/update-user", {
+      const response = await fetch(API_BASE_URL + "/user/getAll-user", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
