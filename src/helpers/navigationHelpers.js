@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 /**
  * Custom hook to provide navigation functions.
@@ -9,7 +9,8 @@ export const useNavigationHelpers = (params) => {
   const navigate = useNavigate();
 
   const goToLogin = () => {
-    navigate(`/login?next=${params}`);
+    if (params) navigate(`/login?next=${params}`);
+    else navigate(`/login`);
   };
 
   const goToShop = () => {
@@ -21,8 +22,10 @@ export const useNavigationHelpers = (params) => {
   };
 
   const goToInvoice = (orderType, tableNumber, email) => {
-    if (orderType === 'serve' && tableNumber) {
-      navigate(`/${params}/invoice?orderType=${orderType}&tableNumber=${tableNumber}&email=${email}`);
+    if (orderType === "serve" && tableNumber) {
+      navigate(
+        `/${params}/invoice?orderType=${orderType}&tableNumber=${tableNumber}&email=${email}`,
+      );
     } else {
       navigate(`/${params}/invoice?orderType=${orderType}}&email=${email}`);
     }
@@ -30,13 +33,18 @@ export const useNavigationHelpers = (params) => {
 
   const goToGuestSideLogin = () => {
     navigate(`/${params}/guest-side-login`);
-  }
+  };
+
+  const goToAdminCafes = () => {
+    navigate(`/`);
+  };
 
   return {
     goToLogin,
     goToShop,
     goToCart,
     goToInvoice,
-    goToGuestSideLogin
+    goToGuestSideLogin,
+    goToAdminCafes,
   };
 };

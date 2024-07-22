@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { useNavigationHelpers } from '../helpers/navigationHelpers';
-import { removeConnectedGuestSides } from '../helpers/userHelpers.js';
+import React, { useState, useRef, useEffect } from "react";
+import styled, { keyframes } from "styled-components";
+import { useNavigationHelpers } from "../helpers/navigationHelpers";
 
-const MenuBar = styled.div`
+const HeaderBar = styled.div`
+  margin-top: 25px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -30,11 +30,12 @@ const ProfileName = styled.h2`
   z-index: 11;
   overflow: hidden;
   white-space: nowrap;
-  animation: ${props => {
-    if (props.animate === 'grow') return gg;
-    if (props.animate === 'shrink') return ss;
-    return nn;
-  }} 0.5s forwards;
+  animation: ${(props) => {
+      if (props.animate === "grow") return gg;
+      if (props.animate === "shrink") return ss;
+      return nn;
+    }}
+    0.5s forwards;
 `;
 
 const nn = keyframes`
@@ -89,11 +90,12 @@ const ProfileImage = styled.img`
   border-radius: 50%;
   cursor: pointer;
   z-index: 12;
-  animation: ${props => {
-    if (props.animate === 'grow') return g;
-    if (props.animate === 'shrink') return s;
-    return 'none';
-  }} 0.5s forwards;
+  animation: ${(props) => {
+      if (props.animate === "grow") return g;
+      if (props.animate === "shrink") return s;
+      return "none";
+    }}
+    0.5s forwards;
 `;
 
 const g = keyframes`
@@ -163,7 +165,8 @@ const Rectangle = styled.div`
   background-color: white;
   z-index: 10;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  animation: ${props => props.animate === 'grow' ? grow : shrink} 0.5s forwards;
+  animation: ${(props) => (props.animate === "grow" ? grow : shrink)} 0.5s
+    forwards;
   overflow: hidden;
   padding: 10px;
   box-sizing: border-box;
@@ -197,60 +200,72 @@ const Child = styled.div`
   font-weight: 500;
   font-style: normal;
 
-  ${props => props.hasChildren && `
+  ${(props) =>
+    props.hasChildren &&
+    `
     height: auto;
     padding-bottom: 10px;
   `}
 `;
 
-const Menu = ({ shopId, user, isEdit, isLogout, guestSides }) => {
-  const { goToLogin, goToGuestSideLogin } = useNavigationHelpers(shopId);
+const Header = ({
+  HeaderText,
+  shopId,
+  user,
+  isEdit,
+  isLogout,
+  guestSides,
+  guestSideOfClerk,
+  removeConnectedGuestSides,
+}) => {
+  const { goToLogin, goToGuestSideLogin, goToAdminCafes } =
+    useNavigationHelpers(shopId);
   const [showRectangle, setShowRectangle] = useState(false);
-  const [animate, setAnimate] = useState('');
+  const [animate, setAnimate] = useState("");
   const rectangleRef = useRef(null);
 
   const handleImageClick = () => {
     if (showRectangle) {
-      setAnimate('shrink');
+      setAnimate("shrink");
       setTimeout(() => setShowRectangle(false), 500);
     } else {
-      setAnimate('grow');
+      setAnimate("grow");
       setShowRectangle(true);
     }
   };
 
   const handleClickOutside = (event) => {
     if (rectangleRef.current && !rectangleRef.current.contains(event.target)) {
-      setAnimate('shrink');
+      setAnimate("shrink");
       setTimeout(() => setShowRectangle(false), 500);
     }
   };
 
   const handleScroll = () => {
     if (showRectangle) {
-      setAnimate('shrink');
+      setAnimate("shrink");
       setTimeout(() => setShowRectangle(false), 500);
     }
   };
 
   useEffect(() => {
     if (showRectangle) {
-      document.addEventListener('mousedown', handleClickOutside);
-      window.addEventListener('scroll', handleScroll);
+      document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", handleScroll);
     } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [showRectangle]);
 
   return (
-    <MenuBar>
-      <Title>Menu</Title>
+    <HeaderBar>
+      <Title>{HeaderText}</Title>
       <ProfileImage
         src="https://static-00.iconduck.com/assets.00/profile-major-icon-1024x1024-9rtgyx30.png"
         alt="Profile"
@@ -258,30 +273,53 @@ const Menu = ({ shopId, user, isEdit, isLogout, guestSides }) => {
         animate={showRectangle && animate}
       />
       <ProfileName animate={showRectangle && animate}>
-        {user.username !== undefined ? user.username : 'guest'}
+        {user.username !== undefined ? user.username : "guest"}
       </ProfileName>
       {showRectangle && (
         <Rectangle ref={rectangleRef} animate={animate}>
           <ChildContainer>
-            {user.username === undefined && <Child onClick={goToLogin}>Click to login</Child>}
-            {user.username !== undefined && <Child onClick={isEdit}>Edit</Child>}
+            {guestSideOfClerk &&
+              guestSideOfClerk.clerkUsername !== undefined && (
+                <Child hasChildren>
+                  this is the guest side of {guestSideOfClerk.clerkUsername}
+                </Child>
+              )}
+            {user.username === undefined && guestSideOfClerk == undefined && (
+              <Child onClick={goToLogin}>Click to login</Child>
+            )}
+            {user.username !== undefined && (
+              <Child onClick={isEdit}>Edit</Child>
+            )}
+            {shopId && user.username !== undefined && user.roleId === 1 && (
+              <Child onClick={goToAdminCafes}>Your Cafes</Child>
+            )}
             {user.username !== undefined && user.roleId === 2 && (
               <Child hasChildren>
-                <Child onClick={goToGuestSideLogin}>Add guest side</Child>
-                {guestSides && guestSides.map((key, index) => (
-                  <Child key={index}>
-                    guest side {index + 1}
-                    <button onClick={() => removeConnectedGuestSides(guestSides[index][3])}>remove</button>
-                  </Child>
-                ))}
+                connected guest sides
+                <Child onClick={goToGuestSideLogin}>+ Add guest side</Child>
+                {guestSides &&
+                  guestSides.map((key, index) => (
+                    <Child key={index}>
+                      guest side {index + 1}
+                      <button
+                        onClick={() =>
+                          removeConnectedGuestSides(guestSides[index][3])
+                        }
+                      >
+                        remove
+                      </button>
+                    </Child>
+                  ))}
               </Child>
             )}
-            {user.username !== undefined && <Child onClick={isLogout}>Logout</Child>}
+            {user.username !== undefined && (
+              <Child onClick={isLogout}>Logout</Child>
+            )}
           </ChildContainer>
         </Rectangle>
       )}
-    </MenuBar>
+    </HeaderBar>
   );
 };
 
-export default Menu;
+export default Header;

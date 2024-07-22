@@ -1,118 +1,68 @@
-// src/Dashboard.js
+import React, { useState } from "react";
+import styles from "./Dashboard.module.css"; // Import module CSS for styling
+import Header from "../components/Header";
+import { useNavigate } from "react-router-dom";
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { updateLocalStorage } from "../helpers/localStorageHelpers";
 
-import '../App.css';
-import SearchInput from '../components/SearchInput';
-import ItemTypeLister from '../components/ItemTypeLister';
-import { MusicPlayer } from '../components/MusicPlayer';
-import ItemLister from '../components/ItemLister';
-import AccountUpdateModal from '../components/AccountUpdateModal';
-import Menu from '../components/Menu';
+import AccountUpdateModal from "../components/AccountUpdateModal";
 
-import { ThreeDots } from 'react-loader-spinner';
-
-import { getItemTypesWithItems } from '../helpers/itemHelper.js';
-import { getLocalStorage, updateLocalStorage } from '../helpers/localStorageHelpers';
-
-function Dashboard({ sendParam, socket, user, guestSides }) {
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
-  const { shopId } = useParams();
-  sendParam(shopId);
+const Dashboard = ({ user }) => {
   const navigate = useNavigate();
-
-  const [loading, setLoading] = useState(true);
-  const [screenMessage, setScreenMessage] = useState('');
-
-  const [shopItems, setShopItems] = useState([]);
-
-  const [isSpotifyNeedLogin, setNeedSpotifyLogin] = useState(false);
+  // Sample data for the rectangles
+  const rectangles = [
+    { id: 1, color: "red" },
+    { id: 2, color: "blue" },
+    { id: 3, color: "green" },
+    { id: 4, color: "yellow" },
+    { id: 5, color: "purple" },
+    { id: 6, color: "orange" },
+    { id: 7, color: "teal" },
+    { id: 8, color: "pink" },
+    { id: 9, color: "cyan" },
+    { id: 10, color: "lightblue" },
+  ];
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (user.cafeId != null && user.cafeId != shopId) {
-      navigate('/' + user.cafeId);
-      sendParam(user.cafeId);
-    }
-    if(user.password == 'unsetunsetunset') setIsModalOpen(true);
-
-  }, [user]);
-
-  useEffect(() => {
-    if (token) {
-      updateLocalStorage('auth', token);
-    }
-  }, [token]);
 
   const handleModalClose = () => {
     setIsModalOpen(false);
   };
-
   const handleLogout = () => {
-    updateLocalStorage('auth', '');
-    navigate(0)
+    updateLocalStorage("auth", "");
+    navigate(0);
   };
 
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        const { response, data } = await getItemTypesWithItems(shopId);
-        console.log(data)
-        if (response.status === 200) {
-          setShopItems(data);
-          setLoading(false);
-          socket.emit('join-room', { token: getLocalStorage('auth'), shopId });
-
-          socket.on('joined-room', (response) => {
-            const { isSpotifyNeedLogin } = response;
-            setNeedSpotifyLogin(isSpotifyNeedLogin);
-          });
-        } else {
-          setScreenMessage('Kafe tidak tersedia');
-        }
-      } catch (error) {
-        console.error('Error fetching shop items:', error);
-        setLoading(false); // Ensure loading state is turned off on error
-      }
-    }
-
-    fetchData();
-  }, [shopId]);
-
-  if (loading)
-    return (
-      <div className='Loader'>
-        <div className='LoaderChild'>
-          <ThreeDots />
-          <h1>{screenMessage}</h1>
-        </div>
-      </div>
-    );
-  else
-    return (
-      <div className="App">
-        <body className="App-header">
-          <div style={{ marginTop: '25px' }}></div>
-          <Menu isEdit={() => setIsModalOpen(true)} isLogout={handleLogout} shopId={shopId} user={user} guestSides={guestSides}/>
-          <div style={{ marginTop: '5px' }}></div>
-          <SearchInput />
-          <div style={{ marginTop: '15px' }}></div>
-          <ItemTypeLister user={user} shopId={shopId} itemTypes={shopItems} />
-          <div style={{ marginTop: '-13px' }}></div>
-          <h2 className='title'>Music Req.</h2>
-          <MusicPlayer socket={socket} shopId={shopId} user={user} isSpotifyNeedLogin={isSpotifyNeedLogin} />
-          <div style={{ marginTop: '-15px' }}></div>
-          {shopItems.map(itemType => (
-            <ItemLister shopId={shopId} user={user} key={itemType.itemTypeId} itemTypeId={itemType.itemTypeId} typeName={itemType.name} itemList={itemType.itemList} />
+  return (
+    <>
+      <Header
+        HeaderText={"GrooveBrew"}
+        isEdit={() => setIsModalOpen(true)}
+        isLogout={handleLogout}
+        user={user}
+      />
+      {user && user.roleId < 2 && (
+        <div className={styles.dashboard}>
+          {rectangles.map((rectangle) => (
+            <div
+              key={rectangle.id}
+              className={styles.rectangle}
+              style={{ backgroundColor: rectangle.color }}
+            >
+              {rectangle.id}
+            </div>
           ))}
-        </body>
-        {user.username && <AccountUpdateModal user={user} isOpen={isModalOpen} onClose={handleModalClose} />}
-      </div>
-    );
-}
+        </div>
+      )}
+
+      {user.username && (
+        <AccountUpdateModal
+          user={user}
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+        />
+      )}
+    </>
+  );
+};
 
 export default Dashboard;

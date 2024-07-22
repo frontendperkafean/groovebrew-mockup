@@ -1,27 +1,41 @@
 // App.js
 
-import './App.css';
-import './components/Loading.css';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
-import socket from './services/socketService';
+import "./App.css";
+import "./components/Loading.css";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import socket from "./services/socketService";
 
-import LoginPage from './pages/LoginPage';
-import Dashboard from './pages/Dashboard';
-import Cart from './pages/Cart';
-import Invoice from './pages/Invoice';
-import Footer from './components/Footer';
+import Dashboard from "./pages/Dashboard";
+import LoginPage from "./pages/LoginPage";
+import CafePage from "./pages/CafePage";
+import Cart from "./pages/Cart";
+import Invoice from "./pages/Invoice";
+import Footer from "./components/Footer";
 
-import GuestSideLogin from './pages/GuestSideLogin';
-import GuestSide from './pages/GuestSide';
+import GuestSideLogin from "./pages/GuestSideLogin";
+import GuestSide from "./pages/GuestSide";
 
-import { checkToken, getConnectedGuestSides } from './helpers/userHelpers.js';
-import { getLocalStorage, removeLocalStorage } from './helpers/localStorageHelpers';
-import { calculateTotals } from './helpers/cartHelpers';
+import {
+  checkToken,
+  getConnectedGuestSides,
+  removeConnectedGuestSides,
+} from "./helpers/userHelpers.js";
+import {
+  getLocalStorage,
+  removeLocalStorage,
+} from "./helpers/localStorageHelpers";
+import { calculateTotals } from "./helpers/cartHelpers";
 
 function App() {
   const navigate = useNavigate();
   const [user, setUser] = useState([]);
+  const [guestSideOfClerk, setGuestSideOfClerk] = useState([]);
   const [guestSides, setGuestSides] = useState([]);
   const [shopId, setShopId] = useState("");
   const [totalItemsCount, setTotalItemsCount] = useState(0);
@@ -42,17 +56,22 @@ function App() {
     };
 
     // Subscribe to custom localStorage change event
-    window.addEventListener('localStorageUpdated', handleStorageChange);
+    window.addEventListener("localStorageUpdated", handleStorageChange);
 
     return () => {
       // Clean up: Remove event listener on component unmount
-      window.removeEventListener('localStorageUpdated', handleStorageChange);
+      window.removeEventListener("localStorageUpdated", handleStorageChange);
     };
   }, [shopId]);
 
-  // Function to handle setting parameters from Dashboard
+  // Function to handle setting parameters from CafePage
   const handleSetParam = (param) => {
     setShopId(param);
+  };
+
+  const rmConnectedGuestSides = async (gueseSideSessionId) => {
+    const sessionLeft = await removeConnectedGuestSides(gueseSideSessionId);
+    setGuestSides(sessionLeft.guestSideList);
   };
 
   useEffect(() => {
@@ -65,28 +84,36 @@ function App() {
         setGuestSides(connectedGuestSides.sessionDatas);
         // }
       }
-
     };
     validateToken();
   }, [navigate]);
 
   useEffect(() => {
-    if(getLocalStorage('authGuestSide')) socket.emit('checkGuestSideToken', { token: getLocalStorage('authGuestSide')});
-    
-    socket.on('checkGuestSideTokenRes', (data) => {
-      if(data.status == 404) {
-        removeLocalStorage('authGuestSide');
-        navigate('/guest-side');
+    if (getLocalStorage("authGuestSide"))
+      socket.emit("checkGuestSideToken", {
+        token: getLocalStorage("authGuestSide"),
+      });
+
+    socket.on("checkGuestSideTokenRes", (data) => {
+      if (data.status == 404) {
+        removeLocalStorage("authGuestSide");
+        removeLocalStorage("auth");
+        navigate("/guest-side");
+      } else if (data.status == 200) {
+        setGuestSideOfClerk({
+          clerkId: data.sessionData.clerkId,
+          clerkUsername: data.sessionData.clerkUsername,
+        });
       }
     });
 
-    socket.on('signout-guest-session', () => {
-      navigate('/guest-side')
+    socket.on("signout-guest-session", () => {
+      navigate("/guest-side");
     });
 
     // Clean up on component unmount
     return () => {
-      socket.off('signout-guest-session');
+      socket.off("signout-guest-session");
     };
   }, [socket]);
 
@@ -94,29 +121,76 @@ function App() {
     <div className="App">
       <header className="App-header">
         <Routes>
-          <Route path="/login" element={<>
-            <LoginPage />
-          </>} />
-          <Route path="/:shopId" element={<>
-            <Dashboard sendParam={handleSetParam} socket={socket} user={user} guestSides={guestSides} />
-            <Footer shopId={shopId} cartItemsLength={totalItemsCount} />
-          </>} />
-          <Route path="/:shopId/cart" element={<>
-            <Cart sendParam={handleSetParam} totalItemsCount={totalItemsCount} />
-            <Footer shopId={shopId} cartItemsLength={totalItemsCount} />
-          </>} />
-          <Route path="/:shopId/invoice" element={<>
-            <Invoice sendParam={handleSetParam} />
-            <Footer shopId={shopId} cartItemsLength={totalItemsCount} />
-          </>} />
+          <Route
+            path="/"
+            element={
+              <>
+                <Dashboard user={user} />
+              </>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <>
+                <LoginPage />
+              </>
+            }
+          />
+          <Route
+            path="/:shopId"
+            element={
+              <>
+                <CafePage
+                  sendParam={handleSetParam}
+                  socket={socket}
+                  user={user} // if logged
+                  guestSides={guestSides} // if being clerk
+                  guestSideOfClerk={guestSideOfClerk} // if being guest side
+                  removeConnectedGuestSides={(e) => rmConnectedGuestSides(e)}
+                />
+                <Footer shopId={shopId} cartItemsLength={totalItemsCount} />
+              </>
+            }
+          />
+          <Route
+            path="/:shopId/cart"
+            element={
+              <>
+                <Cart
+                  sendParam={handleSetParam}
+                  totalItemsCount={totalItemsCount}
+                />
+                <Footer shopId={shopId} cartItemsLength={totalItemsCount} />
+              </>
+            }
+          />
+          <Route
+            path="/:shopId/invoice"
+            element={
+              <>
+                <Invoice sendParam={handleSetParam} />
+                <Footer shopId={shopId} cartItemsLength={totalItemsCount} />
+              </>
+            }
+          />
 
-
-          <Route path="/:shopId/guest-side-login" element={<>
-            <GuestSideLogin shopId={shopId} socket={socket} />
-          </>} />
-          <Route path="/guest-side" element={<>
-            <GuestSide socket={socket} />
-          </>} />
+          <Route
+            path="/:shopId/guest-side-login"
+            element={
+              <>
+                <GuestSideLogin shopId={shopId} socket={socket} />
+              </>
+            }
+          />
+          <Route
+            path="/guest-side"
+            element={
+              <>
+                <GuestSide socket={socket} />
+              </>
+            }
+          />
         </Routes>
       </header>
     </div>
