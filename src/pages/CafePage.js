@@ -79,6 +79,10 @@ function CafePage({
             const { isSpotifyNeedLogin } = response;
             setNeedSpotifyLogin(isSpotifyNeedLogin);
           });
+
+          socket.on("transaction_created", () => {
+            console.log("transaction created");
+          });
         } else {
           setScreenMessage("Kafe tidak tersedia");
         }
