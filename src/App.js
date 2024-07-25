@@ -35,7 +35,7 @@ import { calculateTotals } from "./helpers/cartHelpers";
 function App() {
   const navigate = useNavigate();
   const [user, setUser] = useState([]);
-  const [guestSideOfClerk, setGuestSideOfClerk] = useState([]);
+  const [guestSideOfClerk, setGuestSideOfClerk] = useState(null);
   const [guestSides, setGuestSides] = useState([]);
   const [shopId, setShopId] = useState("");
   const [totalItemsCount, setTotalItemsCount] = useState(0);
@@ -79,14 +79,14 @@ function App() {
       const checkedtoken = await checkToken();
       if (checkedtoken.ok) {
         setUser(checkedtoken.user.user);
-        // if(checkedtoken.user.user.roleId == 2 && checkedtoken.user.user.cafeId == shopId){
-        const connectedGuestSides = await getConnectedGuestSides();
-        setGuestSides(connectedGuestSides.sessionDatas);
-        // }
+        if (checkedtoken.user.user.cafeId == shopId) {
+          const connectedGuestSides = await getConnectedGuestSides();
+          setGuestSides(connectedGuestSides.sessionDatas);
+        }
       }
     };
     validateToken();
-  }, [navigate]);
+  }, [shopId]);
 
   useEffect(() => {
     if (getLocalStorage("authGuestSide"))
@@ -99,7 +99,8 @@ function App() {
         removeLocalStorage("authGuestSide");
         removeLocalStorage("auth");
         navigate("/guest-side");
-      } else if (data.status == 200) {
+      } else if (data.status === 200) {
+        console.log("isguestside");
         setGuestSideOfClerk({
           clerkId: data.sessionData.clerkId,
           clerkUsername: data.sessionData.clerkUsername,

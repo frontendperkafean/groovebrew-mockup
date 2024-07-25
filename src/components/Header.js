@@ -223,6 +223,7 @@ const Header = ({
   const [showRectangle, setShowRectangle] = useState(false);
   const [animate, setAnimate] = useState("");
   const rectangleRef = useRef(null);
+  const [guestSideOf, setGuestSideOf] = useState(null);
 
   const handleImageClick = () => {
     if (showRectangle) {
@@ -263,6 +264,11 @@ const Header = ({
     };
   }, [showRectangle]);
 
+  useEffect(() => {
+    setGuestSideOf(guestSideOfClerk);
+    console.log(guestSideOfClerk);
+  }, [guestSideOfClerk]);
+
   return (
     <HeaderBar>
       <Title>{HeaderText}</Title>
@@ -278,13 +284,12 @@ const Header = ({
       {showRectangle && (
         <Rectangle ref={rectangleRef} animate={animate}>
           <ChildContainer>
-            {guestSideOfClerk &&
-              guestSideOfClerk.clerkUsername !== undefined && (
-                <Child hasChildren>
-                  this is the guest side of {guestSideOfClerk.clerkUsername}
-                </Child>
-              )}
-            {user.username === undefined && guestSideOfClerk == undefined && (
+            {guestSideOfClerk !== null && guestSideOfClerk.clerkUsername && (
+              <Child hasChildren>
+                this is the guest side of {guestSideOfClerk.clerkUsername}
+              </Child>
+            )}
+            {user.username === undefined && !guestSideOfClerk && (
               <Child onClick={goToLogin}>Click to login</Child>
             )}
             {user.username !== undefined && (

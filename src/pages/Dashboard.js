@@ -1,32 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Dashboard.module.css"; // Import module CSS for styling
 import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
-
-import { updateLocalStorage } from "../helpers/localStorageHelpers";
-
 import AccountUpdateModal from "../components/AccountUpdateModal";
+import { updateLocalStorage } from "../helpers/localStorageHelpers";
+import { getAllCafeOwner } from "../helpers/userHelpers";
+import { getOwnedCafes } from "../helpers/cafeHelpers";
+
+import { ThreeDots } from "react-loader-spinner";
 
 const Dashboard = ({ user }) => {
   const navigate = useNavigate();
-  // Sample data for the rectangles
-  const rectangles = [
-    { id: 1, color: "red" },
-    { id: 2, color: "blue" },
-    { id: 3, color: "green" },
-    { id: 4, color: "yellow" },
-    { id: 5, color: "purple" },
-    { id: 6, color: "orange" },
-    { id: 7, color: "teal" },
-    { id: 8, color: "pink" },
-    { id: 9, color: "cyan" },
-    { id: 10, color: "lightblue" },
-  ];
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    if (user && user.roleId === 0) {
+      setLoading(true);
+      // Example of calling getAllCafeOwner if roleId is 0
+      getAllCafeOwner()
+        .then((data) => {
+          setItems(data); // Assuming getAllCafeOwners returns an array of cafe owners
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching cafe owners:", error);
+        });
+    }
+    if (user && user.roleId === 1) {
+      // Example of calling getAllCafeOwner if roleId is 0
+      setLoading(true);
+      getOwnedCafes(user.userId)
+        .then((data) => {
+          setItems(data); // Assuming getAllCafeOwners returns an array of cafe owners
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching cafe owners:", error);
+        });
+    }
+  }, [user]);
 
   const handleModalClose = () => {
     setIsModalOpen(false);
   };
+
   const handleLogout = () => {
     updateLocalStorage("auth", "");
     navigate(0);
@@ -42,15 +61,21 @@ const Dashboard = ({ user }) => {
       />
       {user && user.roleId < 2 && (
         <div className={styles.dashboard}>
-          {rectangles.map((rectangle) => (
+          {loading && <ThreeDots />}
+          {items.map((item, index) => (
             <div
-              key={rectangle.id}
+              key={index}
+              onClick={() => navigate("/" + item.cafeId)}
               className={styles.rectangle}
-              style={{ backgroundColor: rectangle.color }}
             >
-              {rectangle.id}
+              {item.name || item.username}
             </div>
           ))}
+          {user && user.roleId < 1 ? (
+            <div className={styles.rectangle}>Create Admin</div>
+          ) : (
+            <div className={styles.rectangle}>Create Cafe</div>
+          )}
         </div>
       )}
 
