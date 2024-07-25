@@ -284,7 +284,7 @@ const Header = ({
       {showRectangle && (
         <Rectangle ref={rectangleRef} animate={animate}>
           <ChildContainer>
-            {guestSideOfClerk !== null && guestSideOfClerk.clerkUsername && (
+            {guestSideOfClerk && guestSideOfClerk.clerkUsername && (
               <Child hasChildren>
                 this is the guest side of {guestSideOfClerk.clerkUsername}
               </Child>

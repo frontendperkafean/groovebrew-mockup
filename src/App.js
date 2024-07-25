@@ -76,7 +76,7 @@ function App() {
 
   useEffect(() => {
     const validateToken = async () => {
-      const checkedtoken = await checkToken();
+      const checkedtoken = await checkToken(socket.id);
       if (checkedtoken.ok) {
         setUser(checkedtoken.user.user);
         if (checkedtoken.user.user.cafeId == shopId) {
@@ -86,7 +86,7 @@ function App() {
       }
     };
     validateToken();
-  }, [shopId]);
+  }, [navigate, shopId]);
 
   useEffect(() => {
     if (getLocalStorage("authGuestSide"))
@@ -95,11 +95,12 @@ function App() {
       });
 
     socket.on("checkGuestSideTokenRes", (data) => {
-      if (data.status == 404) {
+      if (data.status !== 200) {
         removeLocalStorage("authGuestSide");
         removeLocalStorage("auth");
         navigate("/guest-side");
-      } else if (data.status === 200) {
+        console.log("isntguestside");
+      } else {
         console.log("isguestside");
         setGuestSideOfClerk({
           clerkId: data.sessionData.clerkId,
@@ -116,7 +117,7 @@ function App() {
     return () => {
       socket.off("signout-guest-session");
     };
-  }, [socket]);
+  }, [navigate, socket]);
 
   return (
     <div className="App">

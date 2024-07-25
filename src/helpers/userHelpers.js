@@ -5,7 +5,7 @@ import {
 } from "./localStorageHelpers";
 import API_BASE_URL from "../config.js";
 
-export async function checkToken() {
+export async function checkToken(socketId) {
   const token = getLocalStorage("auth");
   if (token) {
     try {
@@ -15,6 +15,9 @@ export async function checkToken() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({
+          socketId,
+        }),
       });
       if (response.status === 200) {
         const responseData = await response.json();
