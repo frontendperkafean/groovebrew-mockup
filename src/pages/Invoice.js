@@ -7,10 +7,11 @@ import ItemLister from "../components/ItemLister";
 import { getCartDetails } from "../helpers/itemHelper";
 import {
   handlePaymentFromClerk,
+  handlePaymentFromGuestSide,
   handlePaymentFromGuestDevice,
 } from "../helpers/transactionHelpers";
 
-export default function Invoice({ sendParam }) {
+export default function Invoice({ sendParam, deviceType }) {
   const { shopId } = useParams();
   const location = useLocation(); // Use useLocation hook instead of useSearchParams
   const searchParams = new URLSearchParams(location.search); // Pass location.search directly
@@ -54,13 +55,33 @@ export default function Invoice({ sendParam }) {
 
   const handlePay = async (isCash) => {
     setIsPaymentLoading(true);
-    const pay = await handlePaymentFromClerk(
-      shopId,
-      email,
-      isCash ? "cash" : "cashless",
-      orderType,
-      tableNumber,
-    );
+    console.log("tipe" + deviceType);
+    if (deviceType == "clerk") {
+      const pay = await handlePaymentFromClerk(
+        shopId,
+        email,
+        isCash ? "cash" : "cashless",
+        orderType,
+        tableNumber,
+      );
+    } else if (deviceType == "guestDevice") {
+      const pay = await handlePaymentFromGuestSide(
+        shopId,
+        email,
+        isCash ? "cash" : "cashless",
+        orderType,
+        tableNumber,
+      );
+    } else if (deviceType == "guestDevice") {
+      const pay = await handlePaymentFromGuestDevice(
+        shopId,
+        isCash ? "cash" : "cashless",
+        orderType,
+        tableNumber,
+      );
+    }
+
+    console.log("transaction from " + deviceType + "success");
     setIsPaymentLoading(false);
   };
 

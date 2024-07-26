@@ -6,6 +6,7 @@ import {
 import API_BASE_URL from "../config.js";
 
 export async function checkToken(socketId) {
+  console.log(socketId);
   const token = getLocalStorage("auth");
   if (token) {
     try {

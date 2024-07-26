@@ -22,7 +22,7 @@ import GuestSideLogin from "./pages/GuestSideLogin";
 import GuestSide from "./pages/GuestSide";
 
 import {
-  checkToken,
+  // checkToken,
   getConnectedGuestSides,
   removeConnectedGuestSides,
 } from "./helpers/userHelpers.js";
@@ -39,6 +39,7 @@ function App() {
   const [guestSides, setGuestSides] = useState([]);
   const [shopId, setShopId] = useState("");
   const [totalItemsCount, setTotalItemsCount] = useState(0);
+  const [deviceType, setDeviceType] = useState("");
 
   useEffect(() => {
     // Function to calculate totals from localStorage
@@ -74,25 +75,59 @@ function App() {
     setGuestSides(sessionLeft.guestSideList);
   };
 
-  useEffect(() => {
-    const validateToken = async () => {
-      const checkedtoken = await checkToken(socket.id);
-      if (checkedtoken.ok) {
-        setUser(checkedtoken.user.user);
-        if (checkedtoken.user.user.cafeId == shopId) {
-          const connectedGuestSides = await getConnectedGuestSides();
-          setGuestSides(connectedGuestSides.sessionDatas);
-        }
-      }
-    };
-    validateToken();
-  }, [navigate, shopId]);
+  // useEffect(() => {
+  //   const validateToken = async () => {
+  //     const checkedtoken = await checkToken(socket.id);
+  //     if (checkedtoken.ok) {
+  //       setUser(checkedtoken.user.user);
+  //       if (checkedtoken.user.user.cafeId == shopId) {
+  //         const connectedGuestSides = await getConnectedGuestSides();
+  //         setGuestSides(connectedGuestSides.sessionDatas);
+  //         setDeviceType("clerk");
+  //       } else {
+  //         setDeviceType("guestDevice");
+  //       }
+  //     }
+  //   };
+  //   validateToken();
+  // }, [navigate, socket, shopId]);
 
   useEffect(() => {
-    if (getLocalStorage("authGuestSide"))
+    if (getLocalStorage("auth")) {
+      console.log("emitting");
+      socket.emit("checkUserToken", {
+        token: getLocalStorage("auth"),
+      });
+    } else if (getLocalStorage("authGuestSide")) {
       socket.emit("checkGuestSideToken", {
         token: getLocalStorage("authGuestSide"),
       });
+    }
+    setDeviceType("guestDevice");
+
+    socket.on("transaction_created", async (data) => {
+      console.log("transaction notification");
+    });
+
+    socket.on("checkUserTokenRes", async (data) => {
+      if (data.status !== 200) {
+        removeLocalStorage("authGuestSide");
+        removeLocalStorage("auth");
+        console.log("auth failed");
+      } else {
+        console.log("auth success");
+        console.log(data.data.user);
+
+        setUser(data.data.user);
+        if (data.data.user.cafeId == shopId) {
+          const connectedGuestSides = await getConnectedGuestSides();
+          setGuestSides(connectedGuestSides.sessionDatas);
+          setDeviceType("clerk");
+        } else {
+          setDeviceType("guestDevice");
+        }
+      }
+    });
 
     socket.on("checkGuestSideTokenRes", (data) => {
       if (data.status !== 200) {
@@ -106,6 +141,7 @@ function App() {
           clerkId: data.sessionData.clerkId,
           clerkUsername: data.sessionData.clerkUsername,
         });
+        setDeviceType("guestSide");
       }
     });
 
@@ -171,7 +207,7 @@ function App() {
             path="/:shopId/invoice"
             element={
               <>
-                <Invoice sendParam={handleSetParam} />
+                <Invoice sendParam={handleSetParam} deviceType={deviceType} />
                 <Footer shopId={shopId} cartItemsLength={totalItemsCount} />
               </>
             }
